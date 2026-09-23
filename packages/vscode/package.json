@@ -1,6 +1,6 @@
 {
   "name": "easy-deploy-vscode",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "displayName": "Easy Deploy",
@@ -22,16 +22,26 @@
       { "command": "easyDeploy.uploadChanged", "title": "Easy Deploy: Upload Changed Files" },
       { "command": "easyDeploy.selectTarget", "title": "Easy Deploy: Select Target" },
       { "command": "easyDeploy.testConnection", "title": "Easy Deploy: Test Connection" },
-      { "command": "easyDeploy.openConfig", "title": "Easy Deploy: Open Configuration" }
+      { "command": "easyDeploy.openConfig", "title": "Easy Deploy: Open Configuration" },
+      { "command": "easyDeploy.uploadSelection", "title": "Easy Deploy: Upload Selected File or Folder" },
+      { "command": "easyDeploy.downloadSelection", "title": "Easy Deploy: Download Selected File or Folder" },
+      { "command": "easyDeploy.setPassword", "title": "Easy Deploy: Set Password" },
+      { "command": "easyDeploy.forgetPassword", "title": "Easy Deploy: Forget Password" }
+    ],
+    "keybindings": [
+      { "command": "easyDeploy.upload", "key": "ctrl+alt+u", "mac": "ctrl+cmd+u", "when": "editorTextFocus" },
+      { "command": "easyDeploy.download", "key": "ctrl+alt+g", "mac": "ctrl+cmd+g", "when": "editorTextFocus" },
+      { "command": "easyDeploy.uploadSelection", "key": "ctrl+alt+u", "mac": "ctrl+cmd+u", "when": "filesExplorerFocus" },
+      { "command": "easyDeploy.downloadSelection", "key": "ctrl+alt+g", "mac": "ctrl+cmd+g", "when": "filesExplorerFocus" }
     ],
     "menus": {
       "explorer/context": [
-        { "command": "easyDeploy.upload", "when": "resourceScheme == file", "group": "navigation" },
-        { "command": "easyDeploy.download", "when": "resourceScheme == file", "group": "navigation" }
+        { "command": "easyDeploy.upload", "when": "resourceScheme == file", "group": "navigation@1" },
+        { "command": "easyDeploy.download", "when": "resourceScheme == file", "group": "navigation@2" }
       ],
       "editor/context": [
-        { "command": "easyDeploy.upload", "when": "resourceScheme == file", "group": "navigation" },
-        { "command": "easyDeploy.download", "when": "resourceScheme == file", "group": "navigation" }
+        { "command": "easyDeploy.upload", "when": "resourceScheme == file", "group": "navigation@1" },
+        { "command": "easyDeploy.download", "when": "resourceScheme == file", "group": "navigation@2" }
       ]
     }
   },

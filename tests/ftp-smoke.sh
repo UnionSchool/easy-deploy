@@ -62,6 +62,7 @@ mkdir -p sub
 printf 'unicode\n' > 'sub/中文 文件.txt'
 node "$repo_dir/packages/cli/dist/index.js" up sub
 test "$(cat "$test_dir/remote/project/sub/中文 文件.txt")" = 'unicode'
+node "$repo_dir/packages/cli/dist/index.js" ls sub --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["apiVersion"] == 1 and any(x["name"] == "中文 文件.txt" for x in d["entries"])'
 rm -rf sub
 node "$repo_dir/packages/cli/dist/index.js" down sub
 test "$(cat 'sub/中文 文件.txt')" = 'unicode'

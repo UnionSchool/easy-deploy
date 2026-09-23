@@ -8,9 +8,12 @@ const [project, remote] = process.argv.slice(2);
 const commands = new Map();
 const errors = [];
 const state = new Map();
+const secrets = new Map();
 let answer;
 let picked;
+let input;
 let cancelAfterFirst = false;
+let savedDocument;
 const folder = { name: 'project', uri: uri(project) };
 function uri(fsPath) { return { fsPath, toString: () => `file://${fsPath}` }; }
 const vscode = {
@@ -18,6 +21,8 @@ const vscode = {
   ProgressLocation: { Notification: 1 },
   workspace: {
     workspaceFolders: [folder],
+    textDocuments: [],
+    onDidSaveTextDocument: handler => { savedDocument = handler; return { dispose() {} }; },
     getWorkspaceFolder: resource => resource.fsPath === project || resource.fsPath.startsWith(`${project}${path.sep}`) ? folder : undefined,
   },
   commands: { registerCommand: (name, handler) => { commands.set(name, handler); return { dispose() {} }; } },
@@ -28,6 +33,7 @@ const vscode = {
     showErrorMessage: message => { errors.push(message); },
     showWarningMessage: async () => answer,
     showQuickPick: async () => picked,
+    showInputBox: async () => input,
     withProgress: async (_options, task) => {
       let completed = 0;
       return task({ report: () => { completed++; } }, { get isCancellationRequested() { return cancelAfterFirst && completed > 0; } });
@@ -41,7 +47,7 @@ Module._load = function (request, parent, isMain) {
 };
 const extension = require('../packages/vscode/dist/extension.cjs');
 Module._load = originalLoad;
-extension.activate({ subscriptions: [], workspaceState: { get: key => state.get(key), update: async (key, value) => state.set(key, value) } });
+extension.activate({ subscriptions: [], workspaceState: { get: key => state.get(key), update: async (key, value) => state.set(key, value) }, secrets: { get: async key => secrets.get(key), store: async (key, value) => secrets.set(key, value), delete: async key => secrets.delete(key) } });
 
 async function run() {
   const configPath = path.join(project, 'easy-deploy.json');
@@ -91,6 +97,19 @@ async function run() {
     await upload(uri(targetFile));
     assert.equal(await readFile(path.join(alternateRemote, 'vscode-target.txt'), 'utf8'), 'second');
     assert.equal(existsSync(path.join(remote, 'vscode-target.txt')), false, 'Target 切换后仍上传到了原目录');
+    config.targets.second.uploadOnSave = true;
+    await writeFile(configPath, JSON.stringify(config));
+    const autoFile = path.join(project, 'vscode-auto.txt');
+    await writeFile(autoFile, 'automatic');
+    await savedDocument({ uri: { ...uri(autoFile), scheme: 'file' }, version: 1 });
+    assert.equal(await readFile(path.join(alternateRemote, 'vscode-auto.txt'), 'utf8'), 'automatic');
+    config.targets.second.auth = { type: 'password', passwordEnv: 'ED_TEST_PASSWORD' };
+    await writeFile(configPath, JSON.stringify(config));
+    input = 'test-secret';
+    await commands.get('easyDeploy.setPassword')();
+    assert.equal(secrets.size, 1);
+    await commands.get('easyDeploy.forgetPassword')();
+    assert.equal(secrets.size, 0);
     assert.deepEqual(errors, []);
     console.log('VS Code 确认、取消和 Target 切换测试通过');
   } finally {

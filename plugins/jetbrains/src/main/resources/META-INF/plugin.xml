@@ -4,6 +4,9 @@
     <vendor>UnionSchool</vendor>
     <description>Upload and download project files using Easy Deploy CLI.</description>
     <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Easy Deploy" anchor="right" factoryClass="com.unionschool.easydeploy.RemoteHostToolWindow" />
+    </extensions>
     <actions>
         <group id="EasyDeploy.Group" text="Easy Deploy" popup="true">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />

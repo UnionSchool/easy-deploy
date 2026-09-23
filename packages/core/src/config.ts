@@ -9,6 +9,7 @@ interface BaseTarget {
   remote: string;
   ignore?: string[];
   protected?: boolean;
+  uploadOnSave?: boolean;
 }
 export type Target =
   | (BaseTarget & { driver: 'sftp'; auth: { type: 'ssh-config' | 'private-key' | 'password'; privateKeyPath?: string; passwordEnv?: string } })
@@ -41,7 +42,7 @@ function string(value: unknown, name: string, optional = false): string | undefi
 }
 
 function targetFrom(value: unknown, name: string): Target {
-  const data = record(value, name, ['driver', 'host', 'port', 'username', 'local', 'remote', 'ignore', 'protected', 'auth']);
+  const data = record(value, name, ['driver', 'host', 'port', 'username', 'local', 'remote', 'ignore', 'protected', 'uploadOnSave', 'auth']);
   if (data.driver !== 'sftp' && data.driver !== 'ftp') throw new DeployError('config', `${name}.driver 必须是 sftp 或 ftp`);
   const host = string(data.host, `${name}.host`)!;
   const username = string(data.username, `${name}.username`, true);
@@ -53,6 +54,8 @@ function targetFrom(value: unknown, name: string): Target {
   if (port !== undefined && (typeof port !== 'number' || !Number.isInteger(port) || port < 1 || port > 65535)) throw new DeployError('config', `${name}.port 必须是 1-65535 的整数`);
   const protectedValue = data.protected;
   if (protectedValue !== undefined && typeof protectedValue !== 'boolean') throw new DeployError('config', `${name}.protected 必须是布尔值`);
+  if (data.uploadOnSave !== undefined && typeof data.uploadOnSave !== 'boolean') throw new DeployError('config', `${name}.uploadOnSave 必须是布尔值`);
+  if (data.uploadOnSave && protectedValue) throw new DeployError('config', `${name}.uploadOnSave 不能用于受保护目标`);
   const ignore = data.ignore;
   if (ignore !== undefined && (!Array.isArray(ignore) || ignore.some(item => typeof item !== 'string'))) throw new DeployError('config', `${name}.ignore 必须是字符串数组`);
   const shared: BaseTarget = {
@@ -60,6 +63,7 @@ function targetFrom(value: unknown, name: string): Target {
     ...(username === undefined ? {} : { username }),
     ...(port === undefined ? {} : { port }),
     ...(protectedValue === undefined ? {} : { protected: protectedValue }),
+    ...(data.uploadOnSave === undefined ? {} : { uploadOnSave: data.uploadOnSave as boolean }),
     ...(ignore === undefined ? {} : { ignore }),
   };
   if (data.driver === 'ftp') {

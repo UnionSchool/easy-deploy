@@ -39,6 +39,15 @@ test('配置校验拒绝未知字段和错误类型', async () => {
   }
 });
 
+test('自动上传仅允许非受保护目标', async () => {
+  const dir = await workspace();
+  const file = path.join(dir, 'easy-deploy.json');
+  await writeFile(file, JSON.stringify({ version: 1, default: 'dev', targets: { dev: { ...target, uploadOnSave: true } } }));
+  assert.equal((await loadConfig(dir)).config.targets.dev.uploadOnSave, true);
+  await writeFile(file, JSON.stringify({ version: 1, default: 'dev', targets: { dev: { ...target, protected: true, uploadOnSave: true } } }));
+  await assert.rejects(loadConfig(dir), /不能用于受保护目标/);
+});
+
 test('密码环境变量缺失时在连接前拒绝 FTP 和 SFTP', async () => {
   const passwordEnv = `ED_TEST_MISSING_PASSWORD_${process.pid}`;
   delete process.env[passwordEnv];

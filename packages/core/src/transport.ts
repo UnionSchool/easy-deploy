@@ -16,6 +16,6 @@ export interface Transport {
   remove(remote: string): Promise<void>;
 }
 
-export function createTransport(target: Target): Transport {
-  return target.driver === 'sftp' ? new SftpTransport(target) : new FtpTransport(target);
+export function createTransport(target: Target, password?: string): Transport {
+  return target.driver === 'sftp' ? new SftpTransport(target, password) : new FtpTransport(target, password);
 }

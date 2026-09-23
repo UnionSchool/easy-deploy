@@ -37,7 +37,7 @@ export class SftpTransport implements Transport {
   private version?: { resolve: () => void; reject: (error: Error) => void; timer: NodeJS.Timeout };
   private askpassDir?: string;
   private stderr = '';
-  constructor(private target: SftpTarget) {}
+  constructor(private target: SftpTarget, private passwordOverride?: string) {}
 
   async connect(): Promise<void> {
     const args = ['-T', '-o', 'StrictHostKeyChecking=yes', '-o', 'ConnectTimeout=15', '-o', 'NumberOfPasswordPrompts=1', '-o', 'LogLevel=ERROR'];
@@ -47,7 +47,7 @@ export class SftpTransport implements Transport {
     if (this.target.auth.type === 'private-key') args.push('-i', this.target.auth.privateKeyPath!);
     const env = { ...process.env };
     if (this.target.auth.type === 'password') {
-      const password = process.env[this.target.auth.passwordEnv!];
+      const password = this.passwordOverride ?? process.env[this.target.auth.passwordEnv!];
       if (!password) throw new DeployError('auth', `缺少密码环境变量：${this.target.auth.passwordEnv}`);
       this.askpassDir = await mkdtemp(path.join(tmpdir(), 'ed-askpass-'));
       const script = path.join(this.askpassDir, 'askpass.js');

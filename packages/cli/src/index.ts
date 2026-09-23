@@ -6,7 +6,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import {
   changedFilesForTarget, createTransport, DeployError, downloadPlan, executeDownload,
-  executeUpload, existingDownloads, exampleConfig, loadConfig, selectTarget, uploadPlan,
+  executeUpload, existingDownloads, exampleConfig, loadConfig, relativeRemote, remotePath, selectTarget, uploadPlan,
   type TransferItem,
 } from '@unionschool/easy-deploy-core';
 
@@ -56,8 +56,8 @@ function summary(name: string, driver: string, remote: string, items: TransferIt
 
 async function main(): Promise<void> {
   const { command, options } = parseArgs(process.argv.slice(2));
-  if (options.version) return output('0.1.0', options.json);
-  if (options.help || !command) return output('用法：ed init | ed up <path>|--changed | ed down <path> | ed status | ed targets | ed doctor [--check-write]\n选项：-t/--target、--dry-run、--json、--help、--version', options.json);
+  if (options.version) return output('0.2.0', options.json);
+  if (options.help || !command) return output('用法：ed init | ed up <path>|--changed | ed down <path> | ed ls [path] | ed status | ed targets | ed doctor [--check-write]\n选项：-t/--target、--dry-run、--json、--help、--version', options.json);
   if (command === 'init') {
     const file = path.join(process.cwd(), 'easy-deploy.json');
     try { await access(file); throw new DeployError('config', '配置文件已存在，不会覆盖'); }
@@ -65,7 +65,7 @@ async function main(): Promise<void> {
     await writeFile(file, exampleConfig, { flag: 'wx' });
     return output(`已创建 ${file}`, options.json);
   }
-  if (!['up', 'down', 'status', 'targets', 'doctor'].includes(command)) throw new DeployError('config', `未知命令：${command}`);
+  if (!['up', 'down', 'ls', 'status', 'targets', 'doctor'].includes(command)) throw new DeployError('config', `未知命令：${command}`);
   const cwd = process.cwd();
   const { config } = await loadConfig(cwd);
   if (command === 'targets') return output({ apiVersion: 1, default: config.default, targets: Object.keys(config.targets) }, options.json);
@@ -75,6 +75,22 @@ async function main(): Promise<void> {
     let changed: number | undefined;
     try { changed = (await changedFilesForTarget(cwd, target)).files.length; } catch { /* 项目可以不是 Git 仓库 */ }
     return output({ apiVersion: 1, target: name, driver: target.driver, host: target.host, local: target.local, remote: target.remote, protected: target.protected ?? false, changed }, options.json);
+  }
+  if (command === 'ls') {
+    const relative = relativeRemote(target.remote, options.path ?? '.');
+    const remote = remotePath(target.remote, relative);
+    const transport = createTransport(target);
+    await transport.connect();
+    try {
+      let current = target.remote;
+      if (await transport.isLink(current)) throw new DeployError('path', `远程路径是符号链接：${current}`);
+      for (const part of relative.split('/').filter(part => part && part !== '.')) {
+        current = path.posix.join(current, part);
+        if (await transport.isLink(current)) throw new DeployError('path', `远程路径是符号链接：${current}`);
+      }
+      const entries = (await transport.list(remote)).filter(item => item.name !== '.' && item.name !== '..' && !item.name.includes('/') && !item.name.includes('\\'));
+      return output({ apiVersion: 1, target: name, path: relative, entries }, options.json);
+    } finally { await transport.close(); }
   }
   const transport = createTransport(target);
   if (command === 'doctor') {

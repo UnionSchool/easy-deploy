@@ -84,6 +84,11 @@ mkdir -p sub
 printf 'unicode\n' > 'sub/中文 文件.txt'
 node "$repo_dir/packages/cli/dist/index.js" up sub
 test "$(cat "$test_dir/remote/sub/中文 文件.txt")" = 'unicode'
+node "$repo_dir/packages/cli/dist/index.js" ls sub --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["apiVersion"] == 1 and d["path"] == "sub" and any(x["name"] == "中文 文件.txt" for x in d["entries"])'
+if node "$repo_dir/packages/cli/dist/index.js" ls ../ --json >/dev/null 2>&1; then
+  echo 'ls accepted a path outside remote root' >&2
+  exit 1
+fi
 node "$repo_dir/packages/cli/dist/index.js" targets --json | python3 -c 'import json,sys; raw=sys.stdin.read(); assert len(raw.strip().splitlines()) == 1; d=json.loads(raw); assert d["apiVersion"] == 1 and d["default"] == "local" and d["targets"] == ["local"]'
 node "$repo_dir/packages/cli/dist/index.js" status --json | python3 -c 'import json,sys; raw=sys.stdin.read(); assert len(raw.strip().splitlines()) == 1; d=json.loads(raw); assert d["apiVersion"] == 1 and d["local"] == "." and d["remote"] and d["protected"] is False'
 node "$repo_dir/packages/cli/dist/index.js" up 'sub/中文 文件.txt' --dry-run --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["dryRun"] and len(d["items"]) == 1 and d["items"][0]["relative"] == "sub/中文 文件.txt"'

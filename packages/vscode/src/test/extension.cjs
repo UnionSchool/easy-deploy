@@ -27,6 +27,17 @@ async function run() {
     assert.equal(await readFile(path.join(local, 'file.txt'), 'utf8'), `from workspace ${index}`);
   }
   await roundTrip(folders[0], process.env.ED_TEST_REMOTE, 0);
+  const edited = path.join(folders[0].uri.fsPath, 'vscode-unsaved.txt');
+  await writeFile(edited, 'before');
+  const document = await vscode.workspace.openTextDocument(edited);
+  await vscode.window.showTextDocument(document);
+  const edit = new vscode.WorkspaceEdit();
+  edit.replace(document.uri, new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), 'after');
+  assert.ok(await vscode.workspace.applyEdit(edit));
+  assert.equal(document.isDirty, true);
+  await vscode.commands.executeCommand('easyDeploy.upload');
+  assert.equal(await readFile(path.join(process.env.ED_TEST_REMOTE, 'vscode-unsaved.txt'), 'utf8'), 'after');
+  assert.equal(document.isDirty, false);
   if (folders.length === 2) await roundTrip(folders[1], process.env.ED_TEST_REMOTE_SECOND, 1);
   await writeFile(process.env.ED_TEST_RESULT, 'passed');
 }

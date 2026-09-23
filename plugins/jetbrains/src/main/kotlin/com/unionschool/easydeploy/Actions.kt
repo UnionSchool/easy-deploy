@@ -13,7 +13,10 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.ide.passwordSafe.PasswordSafe
+import com.intellij.credentialStore.CredentialAttributes
 import java.io.File
+import java.io.IOException
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.CompletableFuture
@@ -38,15 +41,36 @@ private fun checkCli(base: String) {
     cliChecked = true
 }
 
-private fun cli(project: Project, vararg args: String, indicator: ProgressIndicator? = null): JsonObject {
+internal fun cli(project: Project, vararg args: String, indicator: ProgressIndicator? = null): JsonObject {
     if (indicator?.isCanceled == true) error("操作已取消")
     val base = project.basePath ?: error("请先打开项目")
     checkCli(base)
     if (indicator?.isCanceled == true) error("操作已取消")
     val command = listOf("easy-deploy", *args, "--json")
     val process = try {
-        ProcessBuilder(command).directory(File(base)).redirectErrorStream(true).start()
-    } catch (error: Exception) {
+        val builder = ProcessBuilder(command).directory(File(base)).redirectErrorStream(true)
+        if (args.firstOrNull() !in listOf("targets", "status")) {
+            val arguments = args.toList()
+            val index = arguments.indexOf("-t")
+            val targetName = if (index >= 0) arguments.getOrNull(index + 1) ?: error("缺少 Target") else selectedTarget(project)
+            val config = JsonParser.parseString(File(base, "easy-deploy.json").readText()).asJsonObject
+            val auth = config.getAsJsonObject("targets")?.getAsJsonObject(targetName)?.getAsJsonObject("auth")
+            if (auth?.get("type")?.asString == "password") {
+                val variable = auth.get("passwordEnv")?.asString ?: error("缺少 passwordEnv")
+                val key = CredentialAttributes("Easy Deploy:$base:$targetName")
+                var password = PasswordSafe.instance.getPassword(key)
+                if (password.isNullOrEmpty() && builder.environment()[variable].isNullOrEmpty()) {
+                    ApplicationManager.getApplication().invokeAndWait {
+                        password = Messages.showPasswordDialog(project, "输入 $targetName 的 FTP/SFTP 密码", "Easy Deploy", Messages.getQuestionIcon())
+                    }
+                    if (password.isNullOrEmpty()) error("已取消输入密码")
+                    PasswordSafe.instance.setPassword(key, password)
+                }
+                if (!password.isNullOrEmpty()) builder.environment()[variable] = password!!
+            }
+        }
+        builder.start()
+    } catch (error: IOException) {
         error("$CLI_GUIDANCE ${error.message}")
     }
     process.outputStream.close()
@@ -61,13 +85,13 @@ private fun cli(project: Project, vararg args: String, indicator: ProgressIndica
     val response = try { JsonParser.parseString(text.lines().last()).asJsonObject }
     catch (_: Exception) { error("Easy Deploy CLI 输出无效：${text.take(500)}") }
     if (process.exitValue() != 0) error(response.get("message")?.asString ?: text.take(500))
-    if ((args.firstOrNull() == "targets" || args.firstOrNull() == "status") && response.get("apiVersion")?.asInt != 1) {
+    if (args.firstOrNull() in listOf("targets", "status", "ls") && response.get("apiVersion")?.asInt != 1) {
         error("Easy Deploy CLI 版本不兼容，请安装与插件匹配的 easy-deploy")
     }
     return response
 }
 
-private fun selectedTarget(project: Project): String {
+internal fun selectedTarget(project: Project): String {
     val selected = PropertiesComponent.getInstance(project).getValue(TARGET_KEY)
     if (selected != null) return selected
     return cli(project, "targets").get("default").asString

@@ -32,7 +32,7 @@ cd easy-deploy
 pnpm install --frozen-lockfile
 pnpm build
 pnpm --dir packages/cli pack --pack-destination /tmp
-npm install -g /tmp/unionschool-easy-deploy-0.1.0.tgz
+npm install -g /tmp/unionschool-easy-deploy-0.2.0.tgz
 easy-deploy --version
 ```
 
@@ -86,6 +86,7 @@ easy-deploy down src
 | `auth` | SFTP 支持 `ssh-config`、`private-key`、`password`；FTP 使用 `password`。 |
 | `ignore` | 额外忽略规则，与配置根目录的 `.gitignore` 合并。 |
 | `protected` | 设为 `true` 时，上传或写权限检查前要求确认。 |
+| `uploadOnSave` | VS Code 保存文件后自动上传；默认关闭，不能用于 `protected: true`。 |
 
 SFTP 使用 `ssh-config` 时，可复用 SSH config、SSH Agent 和已配置的密钥。`private-key` 认证可在 `auth.privateKeyPath` 指定私钥路径。密码认证使用 `auth: { "type": "password", "passwordEnv": "ED_SFTP_PASSWORD" }`；工具从同名环境变量读取密码，不把密码写进 JSON。
 
@@ -105,6 +106,8 @@ FTP 示例：
 
 把这个对象放入 `targets`，并在运行工具的环境中设置 `ED_FTP_PASSWORD`。不要把密码、私钥或包含它们的 `.env` 文件提交到 Git。FTP 使用被动模式（EPSV，必要时回退 PASV）；远端符号链接检查要求服务器提供可解析的 Unix 格式 `LIST`，无法检查时传输会失败。
 
+macOS 的 zsh 中，CLI 可临时运行 `export ED_SFTP_PASSWORD='你的密码'`，同一个终端窗口内再运行 `easy-deploy ...`。FTP 则改用 `ED_FTP_PASSWORD`。从 Dock 启动的 VS Code/PhpStorm 通常不会继承终端的环境变量；扩展或插件首次连接时会弹出密码输入框并交由系统凭据存储，之后无需每次从终端启动。不要把密码写入 `~/.zshrc`、`easy-deploy.json` 或 Git 仓库。
+
 ## 常用命令
 
 | 命令 | 用途 |
@@ -117,6 +120,7 @@ FTP 示例：
 | `easy-deploy up <path> [--dry-run]` | 上传文件或目录；Dry Run 只列出计划。 |
 | `easy-deploy up --changed` | 上传 Git 变更文件；已删除文件只报告，不删除远端文件。 |
 | `easy-deploy down <path> [--dry-run]` | 下载远端文件或目录；覆盖前确认。 |
+| `easy-deploy ls [path] --json` | 列出远端根目录或子目录，供 JetBrains 远程面板使用。 |
 
 `<path>` 相对于 Target 的 `local`/`remote` 根目录。所有命令都可加 `-t name` 选择 Target；`--json` 输出单行 JSON，供脚本和 JetBrains 插件使用。无交互终端时，受保护上传和本地覆盖会被拒绝。目录传输不跟随符号链接，默认禁止上传 `.git`、`.env` 和常见私钥文件。当前只读取配置根目录的 `.gitignore`，不读取子目录的 `.gitignore`。
 
@@ -131,7 +135,9 @@ cd packages/vscode
 npx @vscode/vsce package --out easy-deploy.vsix
 ```
 
-在 VS Code 扩展页面选择 **Install from VSIX**，安装生成的文件。打开含 `easy-deploy.json` 的项目后，可在文件树或编辑器右键上传、下载文件和目录；命令面板提供 **Initialize**、**Upload Changed Files**、**Select Target**、**Test Connection** 和 **Open Configuration**。多工作区会按文件所属工作区选择配置，状态栏显示当前 Target。
+在 VS Code 扩展页面选择 **Install from VSIX**，安装生成的文件。打开含 `easy-deploy.json` 的项目后，可在文件树或编辑器右键上传、下载文件和目录；菜单中 Upload 位于 Download 上方。命令面板提供 **Initialize**、**Upload Changed Files**、**Select Target**、**Test Connection**、**Set Password**、**Forget Password** 和 **Open Configuration**。首次连接密码目标时输入一次密码，重开 VS Code 后会从系统凭据读取。多工作区会按文件所属工作区选择配置，状态栏显示当前 Target。
+
+macOS 按 `⌃⌘U` 上传、`⌃⌘G` 下载；Windows/Linux 按 `Ctrl+Alt+U`、`Ctrl+Alt+G`。编辑器中作用于当前文件，文件树中作用于选中的单个文件或目录。手动上传会先保存相关未保存的文件，保存失败则取消。可在 VS Code 键盘快捷方式设置中修改。需要保存时自动上传，在目标中设置 `"uploadOnSave": true`；仅作用于非受保护目标，不上传配置文件本身。
 
 ## JetBrains 插件
 
@@ -142,7 +148,7 @@ cd plugins/jetbrains
 ./gradlew buildPlugin
 ```
 
-在 IDE 的 **Settings → Plugins → Install Plugin from Disk** 中选择 `build/distributions/` 下的 ZIP。项目文件右键菜单包含 Upload、Download 和 Select Target。插件通过 `easy-deploy --json` 调用 CLI，IDE 进程的 `PATH` 必须能找到该命令。受保护目标和覆盖本地文件会弹出确认框。当前已完成插件构建及 CLI 契约验证，IDE 内完整交互仍待验收。
+插件从 PhpStorm 2023.3.8 起支持。在 IDE 的 **Settings → Plugins → Install Plugin from Disk** 中选择 `build/distributions/` 下的 ZIP。项目文件右键菜单包含 Upload、Download 和 Select Target；右侧 **Easy Deploy** 面板按需展开远程目录，并可对选中项上传、下载。插件通过 `easy-deploy --json` 调用 CLI，IDE 进程的 `PATH` 必须能找到该命令。密码首次输入后由 IDE 密码库保存；每次传输都重新连接，避免复用空闲 FTP 连接。受保护目标和覆盖本地文件会弹出确认框。已在 PhpStorm 2023.3.8 SDK 构建；IDE 内完整交互仍待验收。
 
 ## 开发与测试
 

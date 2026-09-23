@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.unionschool.easydeploy"
-version = "0.1.0"
+version = "0.2.0"
 
 repositories {
     mavenCentral()
@@ -12,7 +12,10 @@ repositories {
 }
 
 dependencies {
-    intellijPlatform { intellijIdeaCommunity("2024.1.5") }
+    intellijPlatform {
+        val localIde = providers.gradleProperty("localIdePath").orNull
+        if (localIde != null) local(localIde) else intellijIdeaCommunity("2023.3.8")
+    }
 }
 
 kotlin { jvmToolchain(17) }
@@ -22,6 +25,6 @@ intellijPlatform {
         id = "com.unionschool.easydeploy"
         name = "Easy Deploy"
         version = project.version.toString()
-        ideaVersion { sinceBuild = "241" }
+        ideaVersion { sinceBuild = "233" }
     }
 }

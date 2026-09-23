@@ -89,7 +89,7 @@ async function socketTo(host: string, port: number): Promise<Socket> {
 
 export class FtpTransport implements Transport {
   private control?: ControlConnection;
-  constructor(private target: Extract<Target, { driver: 'ftp' }>) {}
+  constructor(private target: Extract<Target, { driver: 'ftp' }>, private passwordOverride?: string) {}
 
   private get connection(): ControlConnection {
     if (!this.control) throw new DeployError('connection', 'FTP 尚未连接');
@@ -97,7 +97,7 @@ export class FtpTransport implements Transport {
   }
 
   async connect(): Promise<void> {
-    const password = process.env[this.target.auth.passwordEnv];
+    const password = this.passwordOverride ?? process.env[this.target.auth.passwordEnv];
     if (!password) throw new DeployError('auth', `缺少密码环境变量：${this.target.auth.passwordEnv}`);
     try {
       const socket = await socketTo(this.target.host, this.target.port ?? 21);
