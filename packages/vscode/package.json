@@ -1,0 +1,46 @@
+{
+  "name": "easy-deploy-vscode",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "displayName": "Easy Deploy",
+  "publisher": "UnionSchool",
+  "description": "Upload and download project files over SFTP or FTP",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UnionSchool/easy-deploy.git"
+  },
+  "license": "MIT",
+  "engines": { "vscode": "^1.90.0" },
+  "main": "./dist/extension.cjs",
+  "activationEvents": ["onCommand:easyDeploy.upload", "onCommand:easyDeploy.download", "workspaceContains:easy-deploy.json"],
+  "contributes": {
+    "commands": [
+      { "command": "easyDeploy.init", "title": "Easy Deploy: Initialize" },
+      { "command": "easyDeploy.upload", "title": "Easy Deploy: Upload" },
+      { "command": "easyDeploy.download", "title": "Easy Deploy: Download" },
+      { "command": "easyDeploy.uploadChanged", "title": "Easy Deploy: Upload Changed Files" },
+      { "command": "easyDeploy.selectTarget", "title": "Easy Deploy: Select Target" },
+      { "command": "easyDeploy.testConnection", "title": "Easy Deploy: Test Connection" },
+      { "command": "easyDeploy.openConfig", "title": "Easy Deploy: Open Configuration" }
+    ],
+    "menus": {
+      "explorer/context": [
+        { "command": "easyDeploy.upload", "when": "resourceScheme == file", "group": "navigation" },
+        { "command": "easyDeploy.download", "when": "resourceScheme == file", "group": "navigation" }
+      ],
+      "editor/context": [
+        { "command": "easyDeploy.upload", "when": "resourceScheme == file", "group": "navigation" },
+        { "command": "easyDeploy.download", "when": "resourceScheme == file", "group": "navigation" }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@unionschool/easy-deploy-core": "workspace:*"
+  }
+}

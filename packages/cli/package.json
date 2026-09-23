@@ -1,0 +1,28 @@
+{
+  "name": "easy-deploy",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UnionSchool/easy-deploy.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "ed": "dist/index.js",
+    "easy-deploy": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepack": "node ../../scripts/prepare-cli-package.mjs"
+  },
+  "devDependencies": {
+    "@unionschool/easy-deploy-core": "workspace:*"
+  }
+}

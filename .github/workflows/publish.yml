@@ -1,0 +1,33 @@
+name: Publish npm package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.6.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: node -e "if (process.env.GITHUB_REF_NAME !== 'v' + require('./packages/cli/package.json').version) process.exit(1)"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: node tests/cli-smoke.mjs
+      - run: npm install -g npm@^11.15.0
+      - run: npm publish
+        working-directory: packages/cli

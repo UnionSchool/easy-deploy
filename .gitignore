@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.gradle/
+.DS_Store
+*.log
+docs/
+.intellijPlatform/
+.env
+.env.*
+easy-deploy.json
+*.pem
+*.key
+id_rsa
+id_ed25519
+packages/cli/README.md
+packages/cli/LICENSE

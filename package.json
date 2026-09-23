@@ -1,0 +1,16 @@
+{
+  "name": "easy-deploy-workspace",
+  "private": true,
+  "packageManager": "pnpm@8.6.9",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "pnpm --filter @unionschool/easy-deploy-core build && pnpm --filter easy-deploy build && pnpm --filter easy-deploy-vscode build",
+    "test": "pnpm --filter @unionschool/easy-deploy-core test",
+    "typecheck": "pnpm --filter @unionschool/easy-deploy-core build && pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "tsup": "^8.5.0"
+  }
+}

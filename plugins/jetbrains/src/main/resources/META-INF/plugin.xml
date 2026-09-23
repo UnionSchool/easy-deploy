@@ -1,0 +1,15 @@
+<idea-plugin>
+    <id>com.unionschool.easydeploy</id>
+    <name>Easy Deploy</name>
+    <vendor>UnionSchool</vendor>
+    <description>Upload and download project files using Easy Deploy CLI.</description>
+    <depends>com.intellij.modules.platform</depends>
+    <actions>
+        <group id="EasyDeploy.Group" text="Easy Deploy" popup="true">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+            <action id="EasyDeploy.Upload" class="com.unionschool.easydeploy.UploadAction" text="Upload" />
+            <action id="EasyDeploy.Download" class="com.unionschool.easydeploy.DownloadAction" text="Download" />
+            <action id="EasyDeploy.SelectTarget" class="com.unionschool.easydeploy.SelectTargetAction" text="Select Target" />
+        </group>
+    </actions>
+</idea-plugin>
