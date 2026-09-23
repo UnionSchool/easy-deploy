@@ -29,5 +29,11 @@ jobs:
       - run: pnpm build
       - run: node tests/cli-smoke.mjs
       - run: npm install -g npm@^11.15.0
-      - run: npm publish
+      - run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "easy-deploy@$version" version >/dev/null 2>&1; then
+            echo "easy-deploy@$version already published"
+          else
+            npm publish
+          fi
         working-directory: packages/cli
