@@ -31,8 +31,8 @@ jobs:
       - run: npm install -g npm@^11.15.0
       - run: |
           version=$(node -p "require('./package.json').version")
-          if npm view "easy-deploy@$version" version >/dev/null 2>&1; then
-            echo "easy-deploy@$version already published"
+          if npm view "@unionschool/easy-deploy@$version" version >/dev/null 2>&1; then
+            echo "@unionschool/easy-deploy@$version already published"
           else
             npm publish
           fi

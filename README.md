@@ -16,11 +16,13 @@ Easy Deploy 是一个尽量简单的项目文件部署工具，提供命令行�
 通过 npm 全局安装：
 
 ```bash
-npm install -g easy-deploy
+npm install -g @unionschool/easy-deploy
 easy-deploy --version
 ```
 
 `ed` 是同一个命令的简写。macOS 自带 `/bin/ed` 行编辑器；全局安装后，输入 `ed` 会按 `PATH` 顺序选择其中一个程序，不会修改系统文件。建议用 `easy-deploy --version` 检查安装；需要系统行编辑器时直接运行 `/bin/ed`。
+
+npm 包名带 `@unionschool`，全局安装后的命令仍是 `easy-deploy` 和 `ed`。
 
 也可从 [GitHub](https://github.com/UnionSchool/easy-deploy) 或 [Gitee](https://gitee.com/UnionSchool/easy-deploy) 获取源码，并生成本地安装包：
 
@@ -30,11 +32,11 @@ cd easy-deploy
 pnpm install --frozen-lockfile
 pnpm build
 pnpm --dir packages/cli pack --pack-destination /tmp
-npm install -g /tmp/easy-deploy-0.1.0.tgz
+npm install -g /tmp/unionschool-easy-deploy-0.1.0.tgz
 easy-deploy --version
 ```
 
-升级时安装新版本；卸载运行 `npm uninstall -g easy-deploy`。JetBrains 用户升级 CLI 后重新打开 IDE，让插件读取新的 `PATH` 和命令版本。
+升级时安装新版本；卸载运行 `npm uninstall -g @unionschool/easy-deploy`。JetBrains 用户升级 CLI 后重新打开 IDE，让插件读取新的 `PATH` 和命令版本。
 
 ## 五分钟开始：SFTP
 
@@ -168,7 +170,7 @@ PYTHONPATH=/tmp/easy-deploy-pyftpdlib tests/ftp-smoke.sh
 
 GitHub 的 `publish.yml` 只在正式 `vX.Y.Z` 标签推送时发布 CLI 包；开发进度标签 `progress/*` 不触发发布。工作流先验证版本、安装依赖并运行测试，再通过 npm Trusted Publishing（OIDC）发布，无需把 npm Token 放进仓库。
 
-首次发布需要 npm 账号；随后为 `easy-deploy` 包配置 Trusted Publisher：GitHub 用户/组织 `UnionSchool`、仓库 `easy-deploy`、工作流文件 `publish.yml`，允许 `npm publish`。后续发布需核对版本、在公开仓库提交上打 `vX.Y.Z` 标签并推送。
+首次发布需要 npm 账号；随后为 `@unionschool/easy-deploy` 包配置 Trusted Publisher：GitHub 用户/组织 `UnionSchool`、仓库 `easy-deploy`、工作流文件 `publish.yml`，允许 `npm publish`。后续发布需核对版本、在公开仓库提交上打 `vX.Y.Z` 标签并推送。
 
 ## 隐私与常见问题
 

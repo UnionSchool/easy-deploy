@@ -1,6 +1,7 @@
 {
-  "name": "easy-deploy",
+  "name": "@unionschool/easy-deploy",
   "version": "0.1.0",
+  "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/UnionSchool/easy-deploy.git"

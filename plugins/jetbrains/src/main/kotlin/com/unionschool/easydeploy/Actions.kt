@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.CompletableFuture
 
 private const val TARGET_KEY = "easyDeploy.target"
-private const val CLI_GUIDANCE = "未找到 Easy Deploy CLI。请安装 Node.js 和 easy-deploy，并确认 IDE 的 PATH 能找到 easy-deploy。"
+private const val CLI_GUIDANCE = "未找到 Easy Deploy CLI。请安装 Node.js，运行 npm install -g @unionschool/easy-deploy，并确认 IDE 的 PATH 能找到 easy-deploy。"
 @Volatile private var cliChecked = false
 
 private fun checkCli(base: String) {
