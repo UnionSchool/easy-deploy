@@ -2,7 +2,7 @@
 
 Easy Deploy 是一个尽量简单的项目文件部署工具，提供命令行、VS Code 扩展和 JetBrains 插件。配置文件是 JSON；运行时没有 npm 第三方依赖。SFTP 文件传输由项目代码实现，连接和主机身份校验使用系统 OpenSSH；FTP 客户端使用 Node.js 内置的 `net`。
 
-项目目前仍在开发，尚未发布 npm 正式版本。已在 macOS 和 Linux 验证主要传输流程；Windows 的远端 CI 结果仍待确认。
+项目目前仍在开发，尚未发布 npm 正式版本。已在 macOS 和 Linux 验证主要传输流程；GitHub CI 已在 macOS、Linux、Windows 通过类型检查、测试、构建和 CLI 冒烟测试。Windows 的真实服务器传输仍待验收。
 
 ## 环境要求
 
@@ -22,9 +22,11 @@ easy-deploy --version
 
 `ed` 是同一个命令的简写。macOS 自带 `/bin/ed` 行编辑器；全局安装后，输入 `ed` 会按 `PATH` 顺序选择其中一个程序，不会修改系统文件。建议用 `easy-deploy --version` 检查安装；需要系统行编辑器时直接运行 `/bin/ed`。
 
-目前可从源码生成本地安装包：
+目前可从 [GitHub](https://github.com/UnionSchool/easy-deploy) 或 [Gitee](https://gitee.com/UnionSchool/easy-deploy) 获取源码，并生成本地安装包：
 
 ```bash
+git clone https://github.com/UnionSchool/easy-deploy.git
+cd easy-deploy
 pnpm install --frozen-lockfile
 pnpm build
 pnpm --dir packages/cli pack --pack-destination /tmp
@@ -160,7 +162,7 @@ python3 -m pip install --target /tmp/easy-deploy-pyftpdlib pyftpdlib
 PYTHONPATH=/tmp/easy-deploy-pyftpdlib tests/ftp-smoke.sh
 ```
 
-已安装 VS Code 并配置 `code` 命令时，可运行 `ED_TEST_VSCODE=1 tests/sftp-smoke.sh`；双工作区测试增加 `ED_TEST_VSCODE_MULTI=1`。CI 在 macOS、Linux、Windows 执行类型检查、测试、构建和 CLI 冒烟测试；实际运行结果以 GitHub Actions 为准。
+已安装 VS Code 并配置 `code` 命令时，可运行 `ED_TEST_VSCODE=1 tests/sftp-smoke.sh`；双工作区测试增加 `ED_TEST_VSCODE_MULTI=1`。[GitHub Actions](https://github.com/UnionSchool/easy-deploy/actions) 已在 macOS、Linux、Windows 通过类型检查、测试、构建和 CLI 冒烟测试；macOS 还通过本地 SFTP 冒烟测试，JetBrains 插件通过构建和结构检查。
 
 ## npm 发布
 
