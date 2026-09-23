@@ -206,17 +206,19 @@ export function activate(ext: vscode.ExtensionContext): void {
       const relative = path.relative(root, file);
       if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return;
       saving.add(file);
+      let uploaded = false;
       do {
         const version = document.version;
         const items = await uploadPlan(cwd, target, [relative]);
         if (items.length) {
           const transport = await transportFor(ext, folder, name, target);
           await transport.connect();
-          try { await executeUpload(items, transport); }
+          try { await executeUpload(items, transport); uploaded = true; }
           finally { await transport.close(); }
         }
         if (version === document.version) break;
       } while (true);
+      if (uploaded) vscode.window.showInformationMessage(`Easy Deploy: ${path.basename(file)} 已上传到 ${name}`);
     } catch (error) { vscode.window.showErrorMessage(`Easy Deploy: 自动上传失败：${error instanceof Error ? error.message : String(error)}`); }
     finally { saving.delete(file); }
   }));

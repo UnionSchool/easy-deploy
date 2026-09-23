@@ -32,11 +32,11 @@ cd easy-deploy
 pnpm install --frozen-lockfile
 pnpm build
 pnpm --dir packages/cli pack --pack-destination /tmp
-npm install -g /tmp/unionschool-easy-deploy-0.2.0.tgz
+npm install -g /tmp/unionschool-easy-deploy-0.3.0.tgz
 easy-deploy --version
 ```
 
-升级时安装新版本；卸载运行 `npm uninstall -g @unionschool/easy-deploy`。JetBrains 用户升级 CLI 后重新打开 IDE，让插件读取新的 `PATH` 和命令版本。
+升级可运行 `ed update`（或 `easy-deploy update`），也可用 `npm update -g @unionschool/easy-deploy`；完成后运行 `ed --version` 核对。卸载运行 `npm uninstall -g @unionschool/easy-deploy`。JetBrains 用户升级 CLI 后重新打开 IDE，让插件读取新的 `PATH` 和命令版本。
 
 ## 五分钟开始：SFTP
 
@@ -117,6 +117,7 @@ macOS 的 zsh 中，CLI 可临时运行 `export ED_SFTP_PASSWORD='你的密码'`
 | `easy-deploy status [-t name]` | 查看当前 Target、路径、保护状态和 Git 变更数。 |
 | `easy-deploy doctor [-t name]` | 测试连接和远端根目录是否存在。 |
 | `easy-deploy doctor --check-write` | 创建并删除远端测试文件，检查写权限。 |
+| `ed update` | 更新全局安装的 Easy Deploy CLI。 |
 | `easy-deploy up <path> [--dry-run]` | 上传文件或目录；Dry Run 只列出计划。 |
 | `easy-deploy up --changed` | 上传 Git 变更文件；已删除文件只报告，不删除远端文件。 |
 | `easy-deploy down <path> [--dry-run]` | 下载远端文件或目录；覆盖前确认。 |
@@ -137,7 +138,7 @@ npx @vscode/vsce package --out easy-deploy.vsix
 
 在 VS Code 扩展页面选择 **Install from VSIX**，安装生成的文件。打开含 `easy-deploy.json` 的项目后，可在文件树或编辑器右键上传、下载文件和目录；菜单中 Upload 位于 Download 上方。命令面板提供 **Initialize**、**Upload Changed Files**、**Select Target**、**Test Connection**、**Set Password**、**Forget Password** 和 **Open Configuration**。首次连接密码目标时输入一次密码，重开 VS Code 后会从系统凭据读取。多工作区会按文件所属工作区选择配置，状态栏显示当前 Target。
 
-macOS 按 `⌃⌘U` 上传、`⌃⌘G` 下载；Windows/Linux 按 `Ctrl+Alt+U`、`Ctrl+Alt+G`。编辑器中作用于当前文件，文件树中作用于选中的单个文件或目录。手动上传会先保存相关未保存的文件，保存失败则取消。可在 VS Code 键盘快捷方式设置中修改。需要保存时自动上传，在目标中设置 `"uploadOnSave": true`；仅作用于非受保护目标，不上传配置文件本身。
+macOS 按 `⌃⌘U` 上传、`⌃⌘G` 下载；Windows/Linux 按 `Ctrl+Alt+U`、`Ctrl+Alt+G`。编辑器中作用于当前文件，文件树中作用于选中的单个文件或目录。手动上传会先保存相关未保存的文件，保存失败则取消。可在 VS Code 键盘快捷方式设置中修改。需要保存时自动上传，在目标中设置 `"uploadOnSave": true`；仅作用于非受保护目标，不上传配置文件本身，上传成功会显示文件名和 Target。
 
 ## JetBrains 插件
 

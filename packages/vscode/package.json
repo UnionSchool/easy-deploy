@@ -1,11 +1,13 @@
 {
   "name": "easy-deploy-vscode",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "displayName": "Easy Deploy",
   "publisher": "UnionSchool",
   "description": "Upload and download project files over SFTP or FTP",
+  "categories": ["Other"],
+  "keywords": ["ftp", "sftp", "upload", "download", "deployment"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/UnionSchool/easy-deploy.git"

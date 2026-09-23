@@ -3,6 +3,7 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline/promises';
+import { spawnSync } from 'node:child_process';
 import { stdin, stdout } from 'node:process';
 import {
   changedFilesForTarget, createTransport, DeployError, downloadPlan, executeDownload,
@@ -56,8 +57,14 @@ function summary(name: string, driver: string, remote: string, items: TransferIt
 
 async function main(): Promise<void> {
   const { command, options } = parseArgs(process.argv.slice(2));
-  if (options.version) return output('0.2.0', options.json);
-  if (options.help || !command) return output('用法：ed init | ed up <path>|--changed | ed down <path> | ed ls [path] | ed status | ed targets | ed doctor [--check-write]\n选项：-t/--target、--dry-run、--json、--help、--version', options.json);
+  if (options.version) return output('0.3.0', options.json);
+  if (options.help || !command) return output('用法：ed init | ed up <path>|--changed | ed down <path> | ed ls [path] | ed status | ed targets | ed doctor [--check-write] | ed update\n选项：-t/--target、--dry-run、--json、--help、--version', options.json);
+  if (command === 'update') {
+    const result = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['update', '-g', '@unionschool/easy-deploy'], { stdio: 'inherit', shell: process.platform === 'win32' });
+    if (result.error) throw new DeployError('connection', `更新失败：${result.error.message}`);
+    if (result.status !== 0) throw new DeployError('connection', `npm 更新失败，退出码：${result.status ?? '未知'}`);
+    return output('更新完成，请运行 ed --version 核对版本。', options.json);
+  }
   if (command === 'init') {
     const file = path.join(process.cwd(), 'easy-deploy.json');
     try { await access(file); throw new DeployError('config', '配置文件已存在，不会覆盖'); }
